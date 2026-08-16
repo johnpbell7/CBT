@@ -264,6 +264,46 @@ body[data-tab="home"]{
 
 .greet{font-size:13px; font-weight:600; letter-spacing:.35px; color:var(--tint-ink); margin:16px 6px 0;}
 
+/* ---- stop ----
+   Deliberately not alarm-red: this is pressed by someone already distressed,
+   and a klaxon escalates. Warm clay reads as "halt" and stays in the family. */
+:root{ --stop:#D4695C; --stop-deep:#B4503F; }
+
+.stop{
+  width:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
+  background:var(--stop); color:#fff; border-radius:20px; padding:19px 22px; margin-bottom:14px;
+  box-shadow:0 12px 26px -14px rgba(180,80,63,.75);
+  transition:transform .18s var(--ease), background .3s var(--ease), box-shadow .3s var(--ease);
+}
+.stop:active{transform:scale(.975); background:var(--stop-deep); box-shadow:none;}
+.stop .word{font-size:27px; font-weight:700; letter-spacing:3.5px; line-height:1.1;}
+.stop .sub{font-size:13.5px; font-weight:500; letter-spacing:.1px; opacity:.93;}
+
+/* ---- the sheet it opens ---- */
+.sheet{position:fixed; inset:0; z-index:40; display:flex; align-items:flex-end; justify-content:center;}
+.sheet-veil{position:absolute; inset:0; background:rgba(28,30,44,.44);
+            backdrop-filter:blur(7px); -webkit-backdrop-filter:blur(7px); animation:fadein .3s var(--ease);}
+@keyframes fadein{from{opacity:0} to{opacity:1}}
+.sheet-panel{
+  position:relative; width:100%; max-width:640px; background:var(--bg);
+  border-radius:26px 26px 0 0; padding:10px 18px calc(20px + var(--safe-b));
+  max-height:90dvh; overflow-y:auto; -webkit-overflow-scrolling:touch;
+  box-shadow:0 -14px 44px -20px rgba(20,22,40,.55);
+  animation:sheet-up .44s var(--ease);
+}
+@keyframes sheet-up{from{transform:translateY(100%)} to{transform:none}}
+.grab{width:38px; height:4px; border-radius:2px; background:var(--sep); margin:0 auto 14px;}
+
+.opt{
+  display:flex; align-items:center; gap:13px; width:100%; text-align:left;
+  background:var(--card); border-radius:var(--r-md); padding:13px 14px; margin-bottom:10px;
+  box-shadow:var(--shadow); transition:transform .18s var(--ease);
+}
+.opt:active{transform:scale(.98);}
+.opt .grow{min-width:0;}
+.opt .name{font-size:16px; font-weight:600; letter-spacing:-.2px; color:var(--ink); display:block;}
+.opt .desc{font-size:13px; color:var(--ink-3); line-height:1.35; display:block;}
+
 .tiles{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px;}
 .tile{
   display:flex; flex-direction:column; align-items:flex-start; gap:2px; text-align:left;
@@ -271,10 +311,12 @@ body[data-tab="home"]{
   transition:transform .18s var(--ease), box-shadow .3s var(--ease);
 }
 .tile:active{transform:scale(.97); box-shadow:0 1px 2px rgba(64,68,100,.05);}
-.tile .ico{width:42px; height:42px; border-radius:13px; display:grid; place-items:center; margin-bottom:9px;
-           background:var(--tile-pale);}
-.tile .ico svg{width:23px; height:23px; stroke:var(--tile-ink); stroke-width:1.7; fill:none;
-               stroke-linecap:round; stroke-linejoin:round;}
+/* Shared by dashboard tiles and the stop-sheet options. */
+.ico{width:42px; height:42px; border-radius:13px; display:grid; place-items:center; flex:none;
+     background:var(--tile-pale);}
+.ico svg{width:23px; height:23px; stroke:var(--tile-ink); stroke-width:1.7; fill:none;
+         stroke-linecap:round; stroke-linejoin:round;}
+.tile .ico{margin-bottom:9px;}
 .tile .name{font-size:16px; font-weight:600; letter-spacing:-.2px; color:var(--ink); line-height:1.25;}
 .tile .desc{font-size:12.5px; color:var(--ink-3); line-height:1.35; text-wrap:pretty;}
 

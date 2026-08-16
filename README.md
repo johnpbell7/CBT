@@ -4,7 +4,7 @@ A four-part CBT practice toolkit, mobile-first, installable to the Home Screen.
 
 | Tab | What it does |
 |---|---|
-| **Home** | Greeting, a tile per tool, and the daily diary — a 1–5 mood scale, feeling words, and an optional note. A parked-worry count appears here when there is one. |
+| **Home** | A large STOP button that opens a sheet asking what you need and routes you to the right tool, then a greeting, a tile per tool, and the daily diary — a 1–5 mood scale, feeling words, and an optional note. A parked-worry count appears here when there is one. |
 | **Worry time** | Ring countdown (10/15/20/custom) with pause, resume, chime and haptic at zero. Voice recorder with a live level meter. A parked-worries list for capturing a worry now and dealing with it in the slot. |
 | **Worry tree** | Name the worry → *can you do something about it?* → *can you do it now?* → act now, make a plan, or let go. The let-go branch scrunches the worry into a bin. |
 | **5–4–3–2–1** | Grounding, one sense per screen. Type the items or speak them — speech fills the slots and advances the sense. |
@@ -53,9 +53,9 @@ app/
   globals.css             the prototype's CSS, verbatim
   manifest.ts
   api/transcribe/route.ts Whisper proxy — holds nothing
-components/               TabBar, Home, Diary, MoodFace, WorryTime, Timer,
-                          Recorder, ParkedList, WorryTree, ScrunchBin,
-                          Grounding, Saved, Store
+components/               TabBar, Home, StopSheet, icons, Diary, MoodFace,
+                          WorryTime, Timer, Recorder, ParkedList, WorryTree,
+                          ScrunchBin, Grounding, Saved, Store
 lib/
   db.ts                   idb wrapper, typed accessors
   recorder.ts             MediaRecorder + AnalyserNode + SpeechRecognition (React-free)
@@ -79,6 +79,12 @@ property system, the per-tab tint swap on `body[data-tab]`, and the scrunch,
 crease and bump keyframes. It is not to be refactored into utilities, and there
 is no dark scheme by design. Additions live in a marked block at the foot of
 the file.
+
+The STOP button is deliberately clay (`--stop`), not alarm red: it is pressed
+by someone already distressed, and a klaxon escalates. Its sheet is portalled
+to `<body>` because `main` establishes a stacking context at `z-index:1`, which
+would otherwise trap it beneath the tab bar. The sheet carries a crisis line
+with UK numbers — change these if the user base isn't UK.
 
 The Home tab is an addition beyond the signed-off prototype, built to the
 same recipe rather than around it: a fifth tint (`body[data-tab="home"]`) in
