@@ -245,6 +245,70 @@ audio{width:100%; height:34px;}
    Additions for the app build. Nothing above this line has been altered.
 --------------------------------------------------------------------------- */
 
+/* ---- home ----
+   A fifth tint for the dashboard, built to the same recipe as the four
+   above so it sits in the family rather than alongside it. */
+body[data-tab="home"]{
+  --tint:#63B3D9; --tint-ink:#1F7CA3; --tint-pale:#E4F2F9;
+  --tint-soft:rgba(99,179,217,.15); --tint-line:rgba(99,179,217,.36); --tint-nil:rgba(99,179,217,0);
+}
+
+/* Each section's colour, available regardless of which tab is showing, so
+   the dashboard tiles can preview the colour system. */
+:root{
+  --c-worry:#4CC0AC;  --c-worry-ink:#1E8474;  --c-worry-pale:#E3F6F1;
+  --c-tree:#8B92E4;   --c-tree-ink:#5359C4;   --c-tree-pale:#EAEBFD;
+  --c-ground:#F2A868; --c-ground-ink:#B36A25; --c-ground-pale:#FDEFE2;
+  --c-saved:#F095AE;  --c-saved-ink:#C05677;  --c-saved-pale:#FCE9EF;
+}
+
+.greet{font-size:13px; font-weight:600; letter-spacing:.35px; color:var(--tint-ink); margin:16px 6px 0;}
+
+.tiles{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px;}
+.tile{
+  display:flex; flex-direction:column; align-items:flex-start; gap:2px; text-align:left;
+  background:var(--card); border-radius:var(--r-lg); box-shadow:var(--shadow); padding:16px 15px 15px;
+  transition:transform .18s var(--ease), box-shadow .3s var(--ease);
+}
+.tile:active{transform:scale(.97); box-shadow:0 1px 2px rgba(64,68,100,.05);}
+.tile .ico{width:42px; height:42px; border-radius:13px; display:grid; place-items:center; margin-bottom:9px;
+           background:var(--tile-pale);}
+.tile .ico svg{width:23px; height:23px; stroke:var(--tile-ink); stroke-width:1.7; fill:none;
+               stroke-linecap:round; stroke-linejoin:round;}
+.tile .name{font-size:16px; font-weight:600; letter-spacing:-.2px; color:var(--ink); line-height:1.25;}
+.tile .desc{font-size:12.5px; color:var(--ink-3); line-height:1.35; text-wrap:pretty;}
+
+/* ---- mood ---- */
+.moods{display:flex; gap:7px; margin-top:2px;}
+.mood{
+  flex:1; display:flex; flex-direction:column; align-items:center; gap:5px;
+  background:var(--field); border-radius:14px; padding:11px 2px 9px;
+  transition:background .25s var(--ease), transform .18s var(--ease);
+}
+.mood svg{width:28px; height:28px; stroke:var(--ink-3); stroke-width:1.8; fill:none;
+          stroke-linecap:round; stroke-linejoin:round; transition:stroke .25s var(--ease);}
+.mood span{font-size:11px; color:var(--ink-3); letter-spacing:.1px; transition:color .25s var(--ease);}
+.mood:active{transform:scale(.94);}
+.mood[aria-pressed=true]{background:var(--tint-pale);}
+.mood[aria-pressed=true] svg{stroke:var(--tint-ink);}
+.mood[aria-pressed=true] span{color:var(--tint-ink); font-weight:600;}
+
+/* Feeling words — the chip, but selectable. */
+.pick{
+  background:var(--field); color:var(--ink-2); border-radius:9px; padding:8px 12px;
+  font-size:14.5px; font-weight:500;
+  transition:background .22s var(--ease), color .22s var(--ease), transform .18s var(--ease);
+}
+.pick:active{transform:scale(.95);}
+.pick[aria-pressed=true]{background:var(--tint-pale); color:var(--tint-ink); font-weight:600;}
+
+/* Top-aligned: an entry with a note runs several lines, and a centred face
+   would drift away from the mood it labels. */
+.entry{display:flex; align-items:flex-start; gap:11px;}
+.entry .face{width:34px; height:34px; border-radius:50%; background:var(--tint-pale); display:grid; place-items:center; flex:none;}
+.entry .face svg{width:21px; height:21px; stroke:var(--tint-ink); stroke-width:1.8; fill:none;
+                 stroke-linecap:round; stroke-linejoin:round;}
+
 /* A question asked inside a card. The prototype's h2 is a section label at
    13px, which is too quiet for the main question on a screen. Same family,
    one step up. */

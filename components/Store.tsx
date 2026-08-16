@@ -2,7 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import * as db from "@/lib/db";
-import type { Clip, GroundRound, Parked, Settings, TreeEntry } from "@/lib/db";
+import type { Clip, DiaryEntry, GroundRound, Parked, Settings, TreeEntry } from "@/lib/db";
 
 type Store = {
   ready: boolean;
@@ -11,14 +11,16 @@ type Store = {
   tree: TreeEntry[];
   ground: GroundRound[];
   clips: Clip[];
+  diary: DiaryEntry[];
   saveSettings: (s: Settings) => Promise<void>;
   addParked: (text: string) => Promise<void>;
   toggleParked: (row: Parked) => Promise<void>;
   addTree: (entry: Omit<TreeEntry, "ts">) => Promise<void>;
   addGround: (round: Omit<GroundRound, "ts">) => Promise<void>;
   addClip: (clip: Omit<Clip, "ts">) => Promise<void>;
+  addDiary: (entry: Omit<DiaryEntry, "ts">) => Promise<void>;
   setTranscript: (clip: Clip, transcript: string) => Promise<void>;
-  drop: (store: "parked" | "tree" | "ground" | "clips", ts: number) => Promise<void>;
+  drop: (store: "parked" | "tree" | "ground" | "clips" | "diary", ts: number) => Promise<void>;
   wipe: () => Promise<void>;
 };
 
@@ -32,16 +34,18 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [tree, setTree] = useState<TreeEntry[]>([]);
   const [ground, setGround] = useState<GroundRound[]>([]);
   const [clips, setClips] = useState<Clip[]>([]);
+  const [diary, setDiary] = useState<DiaryEntry[]>([]);
 
   useEffect(() => {
     let live = true;
     (async () => {
-      const [s, p, t, g, c] = await Promise.all([
+      const [s, p, t, g, c, d] = await Promise.all([
         db.getSettings(),
         db.all("parked"),
         db.all("tree"),
         db.all("ground"),
         db.all("clips"),
+        db.all("diary"),
       ]);
       if (!live) return;
       setSettings(s);
@@ -49,6 +53,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       setTree(t);
       setGround(g);
       setClips(c);
+      setDiary(d);
       setReady(true);
     })();
     return () => {
@@ -95,17 +100,25 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     await db.put("clips", row);
   }, []);
 
+  const addDiary = useCallback(async (entry: Omit<DiaryEntry, "ts">) => {
+    const ts = await db.freeKey("diary", Date.now());
+    const row: DiaryEntry = { ...entry, ts };
+    setDiary((rows) => [row, ...rows]);
+    await db.put("diary", row);
+  }, []);
+
   const setTranscript = useCallback(async (clip: Clip, transcript: string) => {
     const next = { ...clip, transcript };
     setClips((rows) => rows.map((r) => (r.ts === clip.ts ? next : r)));
     await db.put("clips", next);
   }, []);
 
-  const drop = useCallback(async (store: "parked" | "tree" | "ground" | "clips", ts: number) => {
+  const drop = useCallback(async (store: "parked" | "tree" | "ground" | "clips" | "diary", ts: number) => {
     if (store === "parked") setParked((r) => r.filter((x) => x.ts !== ts));
     if (store === "tree") setTree((r) => r.filter((x) => x.ts !== ts));
     if (store === "ground") setGround((r) => r.filter((x) => x.ts !== ts));
     if (store === "clips") setClips((r) => r.filter((x) => x.ts !== ts));
+    if (store === "diary") setDiary((r) => r.filter((x) => x.ts !== ts));
     await db.remove(store, ts);
   }, []);
 
@@ -114,6 +127,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     setTree([]);
     setGround([]);
     setClips([]);
+    setDiary([]);
     setSettings({ mins: db.DEFAULT_MINS });
     await db.clearAll();
   }, []);
@@ -126,17 +140,19 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       tree,
       ground,
       clips,
+      diary,
       saveSettings,
       addParked,
       toggleParked,
       addTree,
       addGround,
       addClip,
+      addDiary,
       setTranscript,
       drop,
       wipe,
     }),
-    [ready, settings, parked, tree, ground, clips, saveSettings, addParked, toggleParked, addTree, addGround, addClip, setTranscript, drop, wipe],
+    [ready, settings, parked, tree, ground, clips, diary, saveSettings, addParked, toggleParked, addTree, addGround, addClip, addDiary, setTranscript, drop, wipe],
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

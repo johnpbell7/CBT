@@ -1,6 +1,7 @@
-export type Tab = "worry" | "tree" | "ground" | "saved";
+export type Tab = "home" | "worry" | "tree" | "ground" | "saved";
 
 export const TABS: { id: Tab; label: string }[] = [
+  { id: "home", label: "Home" },
   { id: "worry", label: "Worry time" },
   { id: "tree", label: "Worry tree" },
   { id: "ground", label: "Grounding" },

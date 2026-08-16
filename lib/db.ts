@@ -19,6 +19,9 @@ export type TreeEntry = {
 
 export type GroundRound = { ts: number; items: string[][]; said: string };
 
+/** A daily check-in. `mood` is 1–5, low to high. */
+export type DiaryEntry = { ts: number; mood: number; feelings: string[]; note: string };
+
 export type Clip = {
   ts: number;
   tag: string;
@@ -34,10 +37,12 @@ interface WorryDB extends DBSchema {
   tree: { key: number; value: TreeEntry };
   ground: { key: number; value: GroundRound };
   clips: { key: number; value: Clip };
+  diary: { key: number; value: DiaryEntry };
 }
 
 const DB_NAME = "worrytime";
-const DB_VERSION = 1;
+// v2 added the diary store. Upgrades are additive — nothing is dropped.
+const DB_VERSION = 2;
 
 let dbPromise: Promise<IDBPDatabase<WorryDB>> | null = null;
 
@@ -53,6 +58,7 @@ function db() {
         if (!d.objectStoreNames.contains("tree")) d.createObjectStore("tree", { keyPath: "ts" });
         if (!d.objectStoreNames.contains("ground")) d.createObjectStore("ground", { keyPath: "ts" });
         if (!d.objectStoreNames.contains("clips")) d.createObjectStore("clips", { keyPath: "ts" });
+        if (!d.objectStoreNames.contains("diary")) d.createObjectStore("diary", { keyPath: "ts" });
       },
     });
   }
@@ -89,14 +95,16 @@ export async function putSettings(s: Settings): Promise<void> {
 
 /* ---- generic keyed stores ---- */
 
-type KeyedStore = "parked" | "tree" | "ground" | "clips";
+type KeyedStore = "parked" | "tree" | "ground" | "clips" | "diary";
 type ValueOf<S extends KeyedStore> = S extends "parked"
   ? Parked
   : S extends "tree"
     ? TreeEntry
     : S extends "ground"
       ? GroundRound
-      : Clip;
+      : S extends "diary"
+        ? DiaryEntry
+        : Clip;
 
 /** Newest first — every list in the UI reads that way. */
 export async function all<S extends KeyedStore>(store: S): Promise<ValueOf<S>[]> {
@@ -124,7 +132,7 @@ export async function remove(store: KeyedStore, ts: number): Promise<void> {
 export async function clearAll(): Promise<void> {
   await safe(async () => {
     const d = await db();
-    const stores: (KeyedStore | "meta")[] = ["parked", "tree", "ground", "clips", "meta"];
+    const stores: (KeyedStore | "meta")[] = ["parked", "tree", "ground", "clips", "diary", "meta"];
     await Promise.all(stores.map((s) => d.clear(s as KeyedStore)));
   }, undefined);
 }

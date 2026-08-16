@@ -37,7 +37,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       {/* data-tab drives the per-section tint; the shell keeps it in sync. */}
-      <body data-tab="worry">
+      <body data-tab="home">
         {children}
         <ServiceWorker />
       </body>

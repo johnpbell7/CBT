@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useStore } from "@/components/Store";
+import MoodFace, { moodLabel } from "@/components/MoodFace";
 import { useDictation } from "@/components/useDictation";
 import type { Clip, TreeKind } from "@/lib/db";
 import { at, STATIC } from "@/lib/base";
@@ -19,7 +20,7 @@ const KIND_LABEL: Record<TreeKind, string> = {
 const SENSE_LABEL = ["See", "Feel", "Hear", "Smell", "Taste"];
 
 export default function Saved({ active }: { active: boolean }) {
-  const { clips, tree, ground, drop, wipe, setTranscript, settings, saveSettings } = useStore();
+  const { clips, tree, ground, diary, drop, wipe, setTranscript, settings, saveSettings } = useStore();
 
   const [busy, setBusy] = useState<number | null>(null);
   const [failed, setFailed] = useState<Record<number, string>>({});
@@ -116,6 +117,12 @@ export default function Saved({ active }: { active: boolean }) {
           plan: t.plan,
           when: t.planWhen,
         })),
+        diary: diary.map((d) => ({
+          at: new Date(d.ts).toISOString(),
+          mood: `${d.mood}/5 — ${moodLabel(d.mood)}`,
+          feelings: d.feelings,
+          note: d.note,
+        })),
         grounding: ground.map((g) => ({
           at: new Date(g.ts).toISOString(),
           items: Object.fromEntries(SENSE_LABEL.map((label, i) => [label, g.items[i] ?? []])),
@@ -130,9 +137,10 @@ export default function Saved({ active }: { active: boolean }) {
     } finally {
       setExporting(false);
     }
-  }, [clips, ground, tree]);
+  }, [clips, diary, ground, tree]);
 
-  const nothingSaved = clips.length === 0 && tree.length === 0 && ground.length === 0;
+  const nothingSaved =
+    clips.length === 0 && tree.length === 0 && ground.length === 0 && diary.length === 0;
 
   return (
     <section className={`view${active ? " on" : ""}`} id="v-saved" aria-labelledby="t-saved" role="tabpanel">
@@ -237,6 +245,50 @@ export default function Saved({ active }: { active: boolean }) {
           </div>
         </div>
       )}
+
+      <h2>Daily diary</h2>
+      <div className="card tight">
+        {diary.length === 0 ? (
+          <div className="empty">
+            <strong>No check-ins yet</strong>
+            How you felt each day collects here.
+          </div>
+        ) : (
+          diary.map((d) => (
+            <div className="row" key={d.ts}>
+              <div className="entry grow">
+                <span className="face">
+                  <MoodFace level={d.mood} />
+                </span>
+                <div className="grow">
+                  <div style={{ fontSize: "15.5px" }}>{moodLabel(d.mood)}</div>
+                  <div className="tiny">{when(d.ts)}</div>
+                  {d.feelings.length > 0 && (
+                    <div className="muted" style={{ marginTop: 4 }}>
+                      {d.feelings.join(", ")}
+                    </div>
+                  )}
+                  {d.note && (
+                    <p className="transcript" style={{ marginTop: 6 }}>
+                      {d.note}
+                    </p>
+                  )}
+                </div>
+              </div>
+              <button
+                className="del"
+                aria-label="Delete check-in"
+                onClick={() => {
+                  buzz(TAP);
+                  void drop("diary", d.ts);
+                }}
+              >
+                ×
+              </button>
+            </div>
+          ))
+        )}
+      </div>
 
       <h2>Worry tree</h2>
       <div className="card tight">

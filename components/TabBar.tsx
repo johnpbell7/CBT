@@ -4,6 +4,12 @@ import type { Tab } from "@/lib/tabs";
 import { TABS } from "@/lib/tabs";
 
 const ICONS: Record<Tab, React.ReactElement> = {
+  home: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3.6 10.4 12 3.6l8.4 6.8V20a1.4 1.4 0 0 1-1.4 1.4H5a1.4 1.4 0 0 1-1.4-1.4Z" />
+      <path d="M9.6 21.4v-6.2h4.8v6.2" />
+    </svg>
+  ),
   worry: (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="12" cy="13" r="8" />

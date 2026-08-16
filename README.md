@@ -4,14 +4,15 @@ A four-part CBT practice toolkit, mobile-first, installable to the Home Screen.
 
 | Tab | What it does |
 |---|---|
+| **Home** | Greeting, a tile per tool, and the daily diary — a 1–5 mood scale, feeling words, and an optional note. A parked-worry count appears here when there is one. |
 | **Worry time** | Ring countdown (10/15/20/custom) with pause, resume, chime and haptic at zero. Voice recorder with a live level meter. A parked-worries list for capturing a worry now and dealing with it in the slot. |
 | **Worry tree** | Name the worry → *can you do something about it?* → *can you do it now?* → act now, make a plan, or let go. The let-go branch scrunches the worry into a bin. |
 | **5–4–3–2–1** | Grounding, one sense per screen. Type the items or speak them — speech fills the slots and advances the sense. |
-| **Saved** | Recordings with transcripts, worry tree outcomes and grounding rounds. Delete individually, export everything, or clear the lot. |
+| **Saved** | Recordings with transcripts, diary check-ins, worry tree outcomes and grounding rounds. Delete individually, export everything, or clear the lot. |
 
 ## Where the data lives
 
-On the device, in IndexedDB (`worrytime`), and nowhere else. No account, no
+On the device, in IndexedDB (`worrytime`, v2), and nowhere else. No account, no
 server-side storage, no analytics, no third-party scripts. Audio is stored as a
 Blob, so recordings survive closing the app.
 
@@ -52,8 +53,9 @@ app/
   globals.css             the prototype's CSS, verbatim
   manifest.ts
   api/transcribe/route.ts Whisper proxy — holds nothing
-components/               TabBar, WorryTime, Timer, Recorder, ParkedList,
-                          WorryTree, ScrunchBin, Grounding, Saved, Store
+components/               TabBar, Home, Diary, MoodFace, WorryTime, Timer,
+                          Recorder, ParkedList, WorryTree, ScrunchBin,
+                          Grounding, Saved, Store
 lib/
   db.ts                   idb wrapper, typed accessors
   recorder.ts             MediaRecorder + AnalyserNode + SpeechRecognition (React-free)
@@ -77,6 +79,13 @@ property system, the per-tab tint swap on `body[data-tab]`, and the scrunch,
 crease and bump keyframes. It is not to be refactored into utilities, and there
 is no dark scheme by design. Additions live in a marked block at the foot of
 the file.
+
+The Home tab is an addition beyond the signed-off prototype, built to the
+same recipe rather than around it: a fifth tint (`body[data-tab="home"]`) in
+the same family as the four section hues, and dashboard tiles that each carry
+their own section's colour so the home screen previews the system. The mood
+scale is drawn as stroked SVG faces, not emoji, to match the tab icons. This
+divergence from `docs/reference` is deliberate — do not "correct" it.
 
 Icons are generated, not hand-drawn — `node scripts/make-icons.mjs` rewrites
 all four PNGs from a tiny rasteriser, so there is no binary asset to maintain.
