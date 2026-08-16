@@ -90,3 +90,23 @@ all four PNGs from a tiny rasteriser, so there is no binary asset to maintain.
 - `navigator.vibrate` does not exist on iOS; the guards return silently.
 - A denied microphone permission is sticky per origin — the error copy says to
   change it in browser settings rather than just retrying.
+
+## Deployment
+
+Two shapes from one source tree, selected by environment variable.
+
+**GitHub Pages** (`.github/workflows/pages.yml`, on every push to the
+development branch): `STATIC_EXPORT=1 PAGES_BASE_PATH=/CBT npm run build`
+produces `out/`, served at `https://johnpbell7.github.io/CBT/`. The workflow
+removes `app/api` first, because a static host has no server to run the Whisper
+proxy on — the Saved tab detects this (`NEXT_PUBLIC_STATIC`) and hides the
+Transcribe button rather than offering one that can only fail. Live dictation
+still works, because that runs in the browser.
+
+**Vercel**: no configuration, no flags — import the repo and it builds the
+server shape with `/api/transcribe` live. Set `OPENAI_API_KEY` and
+`TRANSCRIBE_MAX_MB` for Preview and Production.
+
+Both are driven from `next.config.ts`; `lib/base.ts` carries the base path and
+static flag into the client so the manifest, icons and service worker resolve
+correctly under a subpath.

@@ -1,14 +1,18 @@
-/* App-shell cache. Everything except server transcription works offline. */
+/* App-shell cache. Everything except server transcription works offline.
+
+   The base path is derived from where this file is served, so the same
+   worker works at the origin root and under a subpath like /CBT/. */
 
 const CACHE = "worry-time-v1";
-const SHELL = ["/", "/manifest.webmanifest", "/icons/icon-192.png", "/icons/apple-touch-icon.png"];
+const BASE = new URL("./", self.location).pathname; // "/" or "/CBT/"
+const SHELL = [BASE, `${BASE}manifest.webmanifest`, `${BASE}icons/icon-192.png`, `${BASE}icons/apple-touch-icon.png`];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches
       .open(CACHE)
-      .then((c) => c.addAll(SHELL))
-      .catch(() => undefined)
+      // One miss shouldn't sink the whole install.
+      .then((c) => Promise.all(SHELL.map((url) => c.add(url).catch(() => undefined))))
       .then(() => self.skipWaiting()),
   );
 });
@@ -28,8 +32,9 @@ self.addEventListener("fetch", (event) => {
 
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
+  if (!url.pathname.startsWith(BASE)) return;
   // Transcription is online-only by definition; never cache audio uploads.
-  if (url.pathname.startsWith("/api/")) return;
+  if (url.pathname.startsWith(`${BASE}api/`)) return;
 
   // Navigations: fresh when possible, the cached shell when not.
   if (req.mode === "navigate") {
@@ -37,10 +42,10 @@ self.addEventListener("fetch", (event) => {
       fetch(req)
         .then((res) => {
           const copy = res.clone();
-          caches.open(CACHE).then((c) => c.put("/", copy)).catch(() => undefined);
+          caches.open(CACHE).then((c) => c.put(BASE, copy)).catch(() => undefined);
           return res;
         })
-        .catch(() => caches.match("/").then((hit) => hit || Response.error())),
+        .catch(() => caches.match(BASE).then((hit) => hit || Response.error())),
     );
     return;
   }

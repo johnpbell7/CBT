@@ -1,0 +1,66 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [claude/worry-time-cbt-toolkit-ie0ky8]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One deploy at a time; let a newer push supersede an in-flight one.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      # A static host has no server to run the Whisper proxy on. The UI
+      # already hides transcription when NEXT_PUBLIC_STATIC is set; this drops
+      # the route so `output: export` doesn't fail on it.
+      - name: Drop the server route
+        run: rm -rf app/api
+
+      - uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
+      - name: Build static export
+        run: npm run build
+        env:
+          STATIC_EXPORT: "1"
+          PAGES_BASE_PATH: /CBT
+
+      # Without this, Pages runs Jekyll and drops the _next directory.
+      - name: Add .nojekyll
+        run: touch out/.nojekyll
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: out
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

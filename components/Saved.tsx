@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useStore } from "@/components/Store";
 import { useDictation } from "@/components/useDictation";
 import type { Clip, TreeKind } from "@/lib/db";
+import { at, STATIC } from "@/lib/base";
 import { extFor } from "@/lib/recorder";
 import { download, mmss, stamp, when } from "@/lib/format";
 import { buzz, TAP } from "@/lib/haptics";
@@ -69,7 +70,7 @@ export default function Saved({ active }: { active: boolean }) {
       try {
         const form = new FormData();
         form.append("audio", clip.blob, `clip.${extFor(clip.mime)}`);
-        const res = await fetch("/api/transcribe", { method: "POST", body: form });
+        const res = await fetch(at("/api/transcribe"), { method: "POST", body: form });
         const data = (await res.json().catch(() => ({}))) as { text?: string; error?: string };
         if (!res.ok) throw new Error(data.error || `Transcription failed (${res.status})`);
         await setTranscript(clip, (data.text || "").trim() || "(nothing audible)");
@@ -174,14 +175,18 @@ export default function Saved({ active }: { active: boolean }) {
                 {failed[c.ts] && <div className="err">{failed[c.ts]}</div>}
 
                 <div className="btn-row" style={{ marginTop: 10 }}>
-                  <button
-                    className="btn plain sm"
-                    disabled={busy === c.ts}
-                    onClick={() => void transcribe(c)}
-                  >
-                    {busy === c.ts ? <span className="spin" /> : null}
-                    {busy === c.ts ? "Transcribing" : c.transcript ? "Transcribe again" : "Transcribe"}
-                  </button>
+                  {/* No server on a static host, so don't offer a button that
+                      can only fail. */}
+                  {!STATIC && (
+                    <button
+                      className="btn plain sm"
+                      disabled={busy === c.ts}
+                      onClick={() => void transcribe(c)}
+                    >
+                      {busy === c.ts ? <span className="spin" /> : null}
+                      {busy === c.ts ? "Transcribing" : c.transcript ? "Transcribe again" : "Transcribe"}
+                    </button>
+                  )}
                   <button
                     className="btn plain sm"
                     onClick={() => download(c.blob, `worry-time-${stamp(c.ts)}.${extFor(c.mime)}`)}
@@ -196,12 +201,13 @@ export default function Saved({ active }: { active: boolean }) {
       </div>
       {clips.length > 0 && (
         <p className="tiny" style={{ margin: "8px 6px 0" }}>
-          Transcribing sends that one clip to the server, which passes it straight to the speech service and
-          keeps nothing — it isn&apos;t written to disk or logged. Everything else stays on this device.
+          {STATIC
+            ? "This build has no server, so recordings can't be sent off for transcription — anything spoken while your browser was listening is kept, and everything stays on this device."
+            : "Transcribing sends that one clip to the server, which passes it straight to the speech service and keeps nothing — it isn't written to disk or logged. Everything else stays on this device."}
         </p>
       )}
 
-      {liveDictation === false && (
+      {!STATIC && liveDictation === false && (
         <div className="card" style={{ marginTop: 12 }}>
           <div className="row" style={{ padding: 0, border: "none" }}>
             <div className="grow">
